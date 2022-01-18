@@ -5,9 +5,10 @@ import sys
 from multiprocessing import Process
 
 #define address & buffer size
-HOST = ""
+HOST = "localhost"
 PORT = 8001
 BUFFER_SIZE = 1024
+
 def getIP (host):
     print ("Getting IP for ", host)
     try: 
@@ -18,6 +19,7 @@ def getIP (host):
 
     print (f'Ip address of {host} is {remote_ip}')
     return remote_ip
+
 def main():
     host = 'www.google.com'
     port = 80
@@ -43,30 +45,26 @@ def main():
                 
                 proxyEnd.connect((remote_ip, port))
                 
-                
                 #continuously listen for connections
-                while True:
-                    conn, addr = proxyEnd.accept()
-                    p = Process(target=handle_proxy, args = (addr, conn))
-                    p.daemon = True
-                    p.start()
-                    print("Started process ", p)
+                p = Process(target=handle_proxy, args = (conn, proxyEnd))
+                p.daemon = True
+                p.start()
+                print("Started process ", p)
             #     data= proxyEnd.recv(BUFFER_SIZE)
             #     print(f"Sending received data {data} to client")
             #     conn.send(data)
                 
             conn.close()
 
-def handle_proxy(addr, conn):
-    print("Connected by", addr)
+def handle_proxy(conn, proxyEnd):
     #recieve data, wait a bit, then send it back
     
     full_data = conn.recv(BUFFER_SIZE)
     print (f"Sending received data {full_data} to google")
-    conn.sendall(full_data)
-    conn.shutdown(socket.SHUT_RDWR)
+    proxyEnd.sendall(full_data)
+    proxyEnd.shutdown(socket.SHUT_WR)
 
-    data= conn.recv(BUFFER_SIZE)
+    data= proxyEnd.recv(BUFFER_SIZE)
     print(f"Sending received data {data} to client")
     conn.send(data)
 

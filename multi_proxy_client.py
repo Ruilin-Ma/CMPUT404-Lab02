@@ -4,7 +4,7 @@ from multiprocessing import Process
 HOST = "localhost"
 PORT = 8001
 BUFFER_SIZE = 1024
-payload = "GET / HTTP/1.0\r\nHost: www.google.com\r\n\r\n"
+payload = f"GET / HTTP/1.0\r\nHost: www.google.com\r\n\r\n"
 
 def connect(addr):
     try:
@@ -14,7 +14,7 @@ def connect(addr):
         s.shutdown(socket.SHUT_WR)
 
         full_data = s.recv(BUFFER_SIZE)
-        print(full_data)
+        print('full_data is: ', full_data)
 
     except Exception as e:
         print (e)
@@ -24,10 +24,14 @@ def connect(addr):
 def main():
     addr=HOST
     conn=PORT
-    p = Process(target=connect, args = (addr, conn))
-    p.daemon = True
-    p.start()
-    print("Started process ", p)
+    for i in range (5):
+        p = Process(target=connect, args = ((addr, conn),))
+        print("Started process ", p)
+        p.daemon = True
+        p.start()
+        p.join()
+    
+    
 
 if __name__ == "__main__":
     main()
